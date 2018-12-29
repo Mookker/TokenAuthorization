@@ -32,12 +32,32 @@ namespace TokenAuthorization.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost]
-        [Route("generate")]
+        [Route("api-key")]
         public async Task<ActionResult<string>> GenerateApiKey()
         {
             var key = await _apiKeyManager.GenerateKey();
             
             return Ok(key);
+        }
+
+        /// <summary>
+        /// Marks key as invalid
+        /// </summary>
+        /// <param name="disableKeyModel"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        [Route("api-key")]
+        public async Task<ActionResult> InvalidateApiKey(DisableKeyModel disableKeyModel)
+        {
+            var valid = await _apiKeyManager.IsKeyValid(disableKeyModel.Key);
+            if (!valid)
+                return BadRequest("Key is not valid");
+
+            var success = await _apiKeyManager.InvalidateKey(disableKeyModel.Key);
+            if (!success)
+                BadRequest("Unable to mark key as invalid");
+
+            return Ok();
         }
 
         /// <summary>

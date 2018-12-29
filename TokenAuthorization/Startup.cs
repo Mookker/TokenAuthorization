@@ -63,6 +63,11 @@ namespace TokenAuthorization
                 o.Iss = Configuration.GetValue<string>("iss");
                 o.Key = Configuration.GetValue<string>("JwtSecret");
             });
+            
+            services.Configure<ApiKeyManagerOptions>(o => 
+            {
+                o.Password = Configuration.GetValue<string>("ApiKeyManagerPassword");
+            });
 
             services.AddTransient<IPasswordHasher<string>, PasswordHasher<string>>();
             services.AddSingleton<IApiKeyManager, ApiKeyManager>();

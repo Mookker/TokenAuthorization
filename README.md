@@ -3,7 +3,7 @@ Build using dotnet core 2.2.
 
 Usage:
 
-**POST /api/auth/generate** -> Returns API token
+**POST /api/auth/api-key** -> Returns API token
 
 Pass result value to **X-Api-Key** header and call
 
