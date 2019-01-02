@@ -32,8 +32,8 @@ namespace TokenAuthorization.Managers.Implementations
         /// <inheritdoc />
         public async Task<string> GenerateKey()
         {
-            var guid = Guid.NewGuid().ToString();
-            var key = _passwordHasher.HashPassword(guid, _apiKeyManagerOptions.Value.Password);
+            var key = GenerateApiKey();
+
             var success = await _apiKeyRepository.AddKey(key);
             if (!success)
                 return null;
@@ -44,13 +44,33 @@ namespace TokenAuthorization.Managers.Implementations
         /// <inheritdoc />
         public async Task<bool> IsKeyValid(string key)
         {
-            return await _apiKeyRepository.IsKeyValid(key);
+            return ValidateApiKey(key) && await _apiKeyRepository.IsKeyValid(key);
         }
 
         /// <inheritdoc />
         public async Task<bool> InvalidateKey(string key)
         {
             return await _apiKeyRepository.InvalidateKey(key);
+        }
+
+        private string GenerateApiKey()
+        {
+            var guid = Guid.NewGuid().ToString("N");
+            var key = _passwordHasher.HashPassword(guid, _apiKeyManagerOptions.Value.Password);
+            var apiKey = $"{guid}.{key}";
+            
+            return apiKey;
+        }
+
+        private bool ValidateApiKey(string apiKey)
+        {
+            var parts = apiKey?.Split('.');
+            if (parts == null || parts.Length != 2)
+                return false;
+
+            var result = _passwordHasher.VerifyHashedPassword(parts[0], parts[1], _apiKeyManagerOptions.Value.Password);
+
+            return result == PasswordVerificationResult.Success;
         }
     }
 }
