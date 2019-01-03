@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -58,13 +59,16 @@ namespace TokenAuthorization.Managers.Implementations
             var guid = Guid.NewGuid().ToString("N");
             var key = _passwordHasher.HashPassword(guid, _apiKeyManagerOptions.Value.Password);
             var apiKey = $"{guid}.{key}";
+            var encodedKey = Convert.ToBase64String(Encoding.UTF8.GetBytes(apiKey));
             
-            return apiKey;
+            return encodedKey;
         }
 
         private bool ValidateApiKey(string apiKey)
         {
-            var parts = apiKey?.Split('.');
+            var decodedKeyBytes = Convert.FromBase64String(apiKey);
+            var decodedKey = Encoding.UTF8.GetString(decodedKeyBytes);
+            var parts = decodedKey?.Split('.');
             if (parts == null || parts.Length != 2)
                 return false;
 
